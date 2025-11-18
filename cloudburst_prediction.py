@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 def render_cloudburst_page():
 
     st.title("🌩 Cloudburst Prediction")
-    st.markdown("Predict cloudburst likelihood using Logistic Regression or SVM.")
+    st.markdown("Predict cloudburst likelihood using Logistic Regression.")
     st.markdown("---")
 
     # Sidebar
     with st.sidebar:
         st.header("⚙️ Cloudburst Settings")
-        model_choice = st.selectbox("Select Model", ["Logistic Regression", "SVM"])
+        st.write("Model: Logistic Regression")
         show_probs = st.checkbox("Show Predicted Probability", True)
 
     root = Path(__file__).parent
@@ -28,7 +28,6 @@ def render_cloudburst_page():
             return None
 
     logreg_cloud = load_model(root / "cloudburst_logreg.pkl")
-    svm_cloud = load_model(root / "svm_cloudburst.pkl")
     scaler_cloud = load_model(root / "scaler_cloudburst.pkl")
 
     # Input UI (same layout style as flood)
@@ -56,8 +55,8 @@ def render_cloudburst_page():
 
     if submitted:
 
-        if scaler_cloud is None:
-            st.error("❌ Cloudburst scaler/model files not found!")
+        if scaler_cloud is None or logreg_cloud is None:
+            st.error("❌ Cloudburst model or scaler files not found!")
             return
 
         input_df = pd.DataFrame([{
@@ -71,7 +70,7 @@ def render_cloudburst_page():
 
         X_scaled = scaler_cloud.transform(input_df)
 
-        model = logreg_cloud if model_choice == "Logistic Regression" else svm_cloud
+        model = logreg_cloud
         pred = model.predict(X_scaled)[0]
 
         prob = None
