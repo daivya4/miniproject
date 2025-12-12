@@ -11,7 +11,6 @@ def render_cloudburst_page():
     st.markdown("Predict cloudburst likelihood using Logistic Regression.")
     st.markdown("---")
 
-    # Sidebar
     with st.sidebar:
         st.header("⚙️ Cloudburst Settings")
         st.write("Model: Logistic Regression")
@@ -20,7 +19,6 @@ def render_cloudburst_page():
 
     root = Path(__file__).parent
 
-    # Safe Model Loading
     def load_model(path):
         try:
             with open(path, "rb") as f:
@@ -31,18 +29,16 @@ def render_cloudburst_page():
     logreg_cloud = load_model(root / "cloudburst_logreg.pkl")
     scaler_cloud = load_model(root / "scaler_cloudburst.pkl")
 
-    # --- Presets helper ---
     def apply_preset(name):
         presets = {
             'High Humidity Monsoon': {'temperature':26.0, 'dew':24.0, 'hum':92, 'slp':960.0, 'cloud_cover':95.0, 'wind':8.0},
-            'Heavy Convective Event': {'temperature':30.0, 'dew':25.0, 'hum':88, 'slp':1005.0, 'cloud_cover':100.0, 'wind':20.0},
-            'Dry Clear': {'temperature':33.0, 'dew':12.0, 'hum':20, 'slp':1015.0, 'cloud_cover':5.0, 'wind':5.0}
+            'Severe Thunderstorm': {'temperature':30.0, 'dew':25.0, 'hum':88, 'slp':1005.0, 'cloud_cover':100.0, 'wind':20.0},
+            'Dry Clear': {'temperature':33.0, 'dew':12.0, 'hum':20, 'slp':1200.0, 'cloud_cover':5.0, 'wind':5.0}
         }
         return presets.get(name, {})
 
     preset_vals = apply_preset(preset)
 
-    # Input UI (same layout style as flood)
     with st.container():
         st.markdown("<div class='card'>", unsafe_allow_html=True)
 
@@ -108,7 +104,6 @@ def render_cloudburst_page():
 
             st.markdown("---")
 
-            # Quick Feature Visualization
             st.subheader("Feature Visualization")
             features = ["TEMPERATURE", "RELATIVE HUMIDITY", "DEWPOINT", "CLOUD COVER"]
             values = [temp, hum, dew, cloud_cover]

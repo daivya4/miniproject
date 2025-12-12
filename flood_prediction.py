@@ -6,18 +6,15 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
-# --- Page Setup ---
 def render_flood_page():
     st.title("🌊 Flood Risk Prediction (India)")
     st.markdown("Predict flood risk using Logistic Regression or Random Forest.")
 
-    # --- Sidebar ---
     with st.sidebar:
         st.header("ℹ️ Instructions")
         st.write("Input environmental and local data, then select model and predict.")
         st.write("App by: Daivya, Bramha, Hitesh, Bhavya")
 
-    # --- Page Setup ---
     st.set_page_config(page_title="Flood Risk Prediction", page_icon=":umbrella:", layout="wide")
 
     _CSS = """
@@ -50,18 +47,16 @@ def render_flood_page():
 
     st.markdown("---")
 
-    # --- Sidebar ---
     with st.sidebar:
         model_choice = st.selectbox("Select Model", ["Logistic Regression", "Random Forest"]) 
         show_probs = st.checkbox("Show prediction probability (if available)", value=True)
         st.markdown("---")
         preset = st.selectbox("Presets", ["Custom", "Monsoon High Rainfall", "Dry Season", "Urban Low Elevation"])
 
-    # --- Input Form ---
     def apply_preset(name):
         presets = {
             'Monsoon High Rainfall': {'rainfall':300, 'temperature':28, 'humidity':90, 'river_discharge':1500, 'water_level':6, 'elevation':20, 'population_density':1200, 'infrastructure':0, 'historical_floods':1},
-        'Dry Season': {'rainfall':0, 'temperature':35, 'humidity':10, 'river_discharge':20, 'water_level':0.6, 'elevation':500, 'population_density':4000, 'infrastructure':1, 'historical_floods':0},
+        'Dry Season': {'rainfall':0, 'temperature':40, 'humidity':3, 'river_discharge':30, 'water_level':0.5, 'elevation':1000, 'population_density':30000, 'infrastructure':1, 'historical_floods':0},
             'Urban Low Elevation': {'rainfall':120, 'temperature':30, 'humidity':70, 'river_discharge':200, 'water_level':2.5, 'elevation':10, 'population_density':5000, 'infrastructure':0, 'historical_floods':1}
         }
         return presets.get(name, {})
@@ -73,7 +68,6 @@ def render_flood_page():
         with st.form("flood_form"):
             cols = st.columns([1,1,1,1])
             with cols[0]:
-                # Ensure numeric types are consistent: use float for defaults when min_value/step are floats
                 rainfall = st.number_input('Rainfall (mm)', value=float(preset_vals.get('rainfall', 50.0)), min_value=0.0, step=1.0)
                 humidity = st.slider('Humidity (%)', min_value=0, max_value=100, value=int(preset_vals.get('humidity', 60)))
                 river_discharge = st.number_input('River Discharge (m³/s)', value=float(preset_vals.get('river_discharge', 50)), min_value=0.0)
@@ -88,14 +82,12 @@ def render_flood_page():
             with cols[3]:
                 st.markdown("### Advanced")
                 st.caption("Use advanced sliders to explore sensitivity")
-                # quick sensitivity sliders
                 rain_scale = st.slider('Rainfall scale', 0.5, 2.0, 1.0, 0.1)
                 discharge_scale = st.slider('Discharge scale', 0.5, 3.0, 1.0, 0.1)
 
             submitted = st.form_submit_button("🔍 Predict Flood Risk")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- Safe model loading ---
     root = Path(__file__).parent
     lr_model = rf_model = scaler = None
     lr_path = root / 'lr_classifier_flood.pkl'
@@ -116,9 +108,7 @@ def render_flood_page():
     rf_model = try_load(rf_path)
     scaler = try_load(scaler_path)
 
-    # --- Prediction logic ---
     def predict(input_df: pd.DataFrame, model_name: str):
-        # Logistic Regression branch: requires scaler
         if model_name == 'Logistic Regression':
             if lr_model is None or scaler is None:
                 st.error('Logistic Regression model or scaler not available.')
@@ -174,21 +164,17 @@ def render_flood_page():
                 st.markdown("**Input summary**")
                 st.table(input_df.T.rename(columns={0:'value'}))
 
-            # Small chart: radar-like bar for key features
             st.markdown("---")
             st.markdown("**Feature contributions (simple visualization)**")
             features = ['Rainfall (mm)', 'River Discharge (m³/s)', 'Water Level (m)', 'Population Density']
             values = [input_df[f].iloc[0] for f in features]
 
-    # Normalize for comparison
             vals_norm = (np.array(values) - np.min(values)) / (np.max(values) - np.min(values) + 1e-6)
 
-    # Smaller figure
             fig, ax = plt.subplots(figsize=(5, 2))
 
             bars = ax.bar(features, vals_norm, width=0.5)
 
-    # Add value labels above bars
             for bar, val in zip(bars, values):
                 ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
                 f"{val:.1f}", ha='center', fontsize=8)
